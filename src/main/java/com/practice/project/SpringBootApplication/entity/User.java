@@ -14,15 +14,8 @@ import java.util.List;
 @Table(name="candidate", indexes = @Index(name = "idx_username", columnList = "username"))
 public class User {
 
-    public User() {
 
-    }
-    public User(Long id, String username, String password, String email) {
-        this.id = id;
-        this.username = username;
-        this.password = password;
-        this.email = email;
-    }
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,19 +34,23 @@ public class User {
     @Column(unique = true, nullable = false, name="email")
     private String email;
 
-    public List<Image> getImages() {
-        return images;
-    }
-
-    public void setImages(List<Image> images) {
-        this.images = images;
-    }
-
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Image> images = new ArrayList<>();
 
 
+
     // Constructors, getters, and setters
+
+    public User() {
+
+    }
+
+    public User(Long id, String username, String password, String email) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.email = email;
+    }
 
     public Long getId() {
         return id;
@@ -85,6 +82,14 @@ public class User {
 
     public void setEmail(@NotBlank(message = "Email is mandatory") String email) {
         this.email = email;
+    }
+
+    public List<Image> getImages() {
+        return images;
+    }
+
+    public void setImages(List<Image> images) {
+        this.images = images;
     }
 
 }

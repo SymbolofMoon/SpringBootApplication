@@ -75,7 +75,8 @@ This project is designed and developed in order to integrate with Imgur API to u
  - If user choose to logout, the Cookie is Deleted at client side.
  - The expiry time of cookie is 1 hour.
 
-![Logo](register.svg)
+- Registration API
+![Logo](images/register.png)
 
 
 **Client:**
