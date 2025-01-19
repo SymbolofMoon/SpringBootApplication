@@ -54,12 +54,12 @@ This project is designed and developed in order to integrate with Imgur API to u
         -  imgurName: The name of the file that is uploaded
 
 ## API Endpoints
-User Management
+- User Management
     - POST /api/users/register: Registers a user with username and password and basic information.
     - GET /api/users/profile: Retrieves user basic information and image list(authenticated request)
     - POST /api/users/login: Authenticates user based on username and password
     - POST /api/users/logout: Logout the current user
-Image Management
+- Image Management
     - POST /api/users/upload: Upload an image to Imgur (authenticated request)
     - GET /api/users/images/{imageId}:: View a specific image associated with the user (authenticated request)
     - DELETE /api/users/images/{imageId}: Deletes a specific image from Imgur (authenticated request)
