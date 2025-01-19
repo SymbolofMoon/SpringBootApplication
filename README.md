@@ -81,7 +81,7 @@ This project is designed and developed in order to integrate with Imgur API to u
 
 - Login API
 
--  ![Logo](images/login.svg)
+-  ![Logo](images/login.png)
 
 
 **Client:**
