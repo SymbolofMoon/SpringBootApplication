@@ -7,7 +7,8 @@
 - [Database Schema](#database-schema)
 - [API Endpoints](#api-endpoints)
 - [High Level System Design](#high-level-system-design)
-- 
+- [Low Level System Design](#low-level-system-design)
+- [Bonus Point Discussion](#bonus-points-discussion)
 # SpringBootApplication
 
 Introducing SynchronyImgurRESTApp, a REST Application for allow users to register, authenticate, and manage images. 
@@ -60,9 +61,9 @@ This project is designed and developed in order to integrate with Imgur API to u
     - POST /api/users/login: Authenticates user based on username and password
     - POST /api/users/logout: Logout the current user
 - Image Management
-    - POST /api/users/upload: Upload an image to Imgur (authenticated request)
-    - GET /api/users/images/{imageId}:: View a specific image associated with the user (authenticated request)
-    - DELETE /api/users/images/{imageId}: Deletes a specific image from Imgur (authenticated request)
+    - POST /api/upload: Upload an image to Imgur (authenticated request)
+    - GET /api/images/{imageId}:: View a specific image associated with the user (authenticated request)
+    - DELETE /api/images/{imageId}: Deletes a specific image from Imgur (authenticated request)
 
 ## High Level System Design
 
@@ -99,7 +100,15 @@ This project is designed and developed in order to integrate with Imgur API to u
 
 -  ![Logo](images/profile.png)
 
-
+## Low Level System Design
+- Here I follow, a standard 3-layer architecture – Controller, Service, Repository) that is commonly used in SpringBoot.
+- The Beans that I have covered in this project are:
+-  User Controller: Exposes REST endpoints for user registration and authentication and getProfile.
+-  User Service: Handles the logic for user registration, authentication, and linking images.
+-  User Repository: Manages CRUD operations for the user entity.
+-  Image Service: Interfaces with Imgur API to manage image-related operations.
+-  Image Controller: Exposes REST endpoints for upload, view, and delete images.
+-  Image Repository: Stores the image metadata associated with users.
 **Client:**
 
 - ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
