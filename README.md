@@ -8,7 +8,7 @@
 - [API Endpoints](#api-endpoints)
 - 
 - 
-## SpringBootApplication
+# SpringBootApplication
 
 Introducing SynchronyImgurRESTApp, a REST Application for allow users to register, authenticate, and manage images. 
 This project is designed and developed in order to integrate with Imgur API to upload, view, and delete images while associating them with the user profile.
