@@ -76,7 +76,12 @@ This project is designed and developed in order to integrate with Imgur API to u
  - The expiry time of cookie is 1 hour.
 
 - Registration API
-![Logo](images/register.png)
+
+-  ![Logo](images/register.png)
+
+- Login API
+
+-  ![Logo](images/login.png)
 
 
 **Client:**
