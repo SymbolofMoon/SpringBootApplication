@@ -6,25 +6,20 @@ This project is designed and developed in order to integrate with Imgur API to u
 
 ## Table of Contents
 - [SpringBootApplication](#SpringBootApplication)
-- [Functional Requirements](#functionalrequirements) 
+- [Functional Requirements](#functional-requirements) 
 - [NonFunctional Requirements](#nonfunctionalrequirements)
 - [Bonus Points](#Bonus-Points)
 - [Techstack](#techstack)
 - 
 - 
 - 
-
-
-
-## Branches
-
-There are various branches in this project for proper guidance:
-
-[a] __Main Branch:__ This branch contains the README.md file, which provides instructions for installing and running the application. It is dedicated solely to information and guidance on setting up and executing the project.
-
-[b] __Master Branch:__ This branch outlines the ideas and features that have been implemented or are yet to be implemented. It includes detailed planning of features, organized into milestones, to track their development stages.
-
-[c] __redux-implementation Branch:__ Initially, the project was implemented using React only. As the project evolved, Redux was integrated. This branch contains the current implementation of the project with Redux. Users should copy this branch to work with the latest version of the project.
+## Functional Requirements
+-  Register users with basic information, including a username and password.
+-  After user authentication, allow image upload, viewing, and deletion.
+-  Each user can have an associated list of images.
+-  User authentication will be managed using a username and password stored in an in-memory H2 database.
+-  The application should log important events and errors.
+-  JUnit test cases must be implemented.
 
 ## Tech Stack
 
