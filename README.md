@@ -83,9 +83,23 @@ This project is designed and developed in order to integrate with Imgur API to u
 
 -  ![Logo](images/login.png)
 
-- Upload API  
+- Upload Image API  
 
 -  ![Logo](images/upload.png)
+
+- Delete Image API  
+
+-  ![Logo](images/delete.png)
+
+- Get Image API  
+
+-  ![Logo](images/getImage.png)
+
+- Get Profile API  
+
+-  ![Logo](images/profile.png)
+
+
 **Client:**
 
 - ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
