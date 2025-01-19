@@ -2,10 +2,10 @@
 ## Table of Contents
 - [SpringBootApplication](#SpringBootApplication)
 - [Functional Requirements](#functional-requirements) 
-- [NonFunctional Requirements](#nonfunctionalrequirements)
+- [NonFunctional Requirements](#nonfunctional-requirements)
 - [Bonus Points](#Bonus-Points)
-- 
-- 
+- [Database Schema](#database-schema)
+- [API Endpoints](#api-endpoints)
 - 
 - 
 ## SpringBootApplication
@@ -37,7 +37,32 @@ This project is designed and developed in order to integrate with Imgur API to u
     & feel free to connect with a local or cloud instance of the Messaging Platform.
 -  Preferably following the TDD approach for Junit test cases
 
-## Tech Stack
+## Database Schema
+-  We are using H2(In Memory Database) as given in the requirement
+-  There are two relational tables which are as follows:
+    -  User
+        -  id: Generated ID
+        -  username: Unique Parameter
+        -  password: Storing password in encrypted form with the help of Bcrypt
+        -  email: Unique Parameter
+        -  List<Image>images: List of images and OnetoMany relations
+    -  Image
+        -  id: Generated ID
+        -  imgurId: Id that ImgurAPI generates
+        -  imgurLink: The Image link that is uploaded to Imgur
+        -  imgurDeleteHash: The delete hash used to delete the image in Imgur
+        -  imgurName: The name of the file that is uploaded
+
+## API Endpoints
+User Management
+    - POST /api/users/register: Registers a user with username and password and basic information.
+    - GET /api/users/profile: Retrieves user basic information and image list(authenticated request)
+    - POST /api/users/login: Authenticates user based on username and password
+    - POST /api/users/logout: Logout the current user
+Image Management
+    - POST /api/users/upload: Upload an image to Imgur (authenticated request)
+    - GET /api/users/images/{imageId}:: View a specific image associated with the user (authenticated request)
+    - DELETE /api/users/images/{imageId}: Deletes a specific image from Imgur (authenticated request)
 
 **Client:**
 
