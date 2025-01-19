@@ -1,18 +1,18 @@
-# SpringBootApplication
-
-Introducing SynchronyImgurRESTApp, a REST Application for allow users to register, authenticate, and manage images. 
-This project is designed and developed in order to integrate with Imgur API to upload, view, and delete images while associating them with the user profile.
-
 
 ## Table of Contents
 - [SpringBootApplication](#SpringBootApplication)
 - [Functional Requirements](#functional-requirements) 
 - [NonFunctional Requirements](#nonfunctionalrequirements)
 - [Bonus Points](#Bonus-Points)
-- [Techstack](#techstack)
 - 
 - 
 - 
+- 
+## SpringBootApplication
+
+Introducing SynchronyImgurRESTApp, a REST Application for allow users to register, authenticate, and manage images. 
+This project is designed and developed in order to integrate with Imgur API to upload, view, and delete images while associating them with the user profile.
+
 ## Functional Requirements
 -  Register users with basic information, including a username and password.
 -  After user authentication, allow image upload, viewing, and deletion.
@@ -20,6 +20,22 @@ This project is designed and developed in order to integrate with Imgur API to u
 -  User authentication will be managed using a username and password stored in an in-memory H2 database.
 -  The application should log important events and errors.
 -  JUnit test cases must be implemented.
+
+## NonFunctional Requirements
+-  Spring Boot 3.x.x framework
+-  JDK 17 or lower
+-  H2 Database (in-memory for storing user information)
+-  Imgur API Integration for image operations
+-  Security
+-  Scalable
+
+## Bonus Points
+-  Secure API via oAuth2
+-  Optimize API for 100K RPM
+-  Establish CI/CD Pipeline (feel free to use open-source tools)
+-  Create a messaging event that publishes the username and the image name to a Messaging Platform (Ex: Kafka)
+    & feel free to connect with a local or cloud instance of the Messaging Platform.
+-  Preferably following the TDD approach for Junit test cases
 
 ## Tech Stack
 
