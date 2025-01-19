@@ -6,7 +6,7 @@
 - [Bonus Points](#Bonus-Points)
 - [Database Schema](#database-schema)
 - [API Endpoints](#api-endpoints)
-- 
+- [High Level System Design](#high-level-system-design)
 - 
 # SpringBootApplication
 
@@ -63,6 +63,19 @@ This project is designed and developed in order to integrate with Imgur API to u
     - POST /api/users/upload: Upload an image to Imgur (authenticated request)
     - GET /api/users/images/{imageId}:: View a specific image associated with the user (authenticated request)
     - DELETE /api/users/images/{imageId}: Deletes a specific image from Imgur (authenticated request)
+
+## High Level System Design
+
+**This System is based on how a client app can handle crud activities for 3rd Party App. The flow behind the app is**
+ - The user Will Register through our App and the information will be stored in the h2 database
+ - User Login through our app using username and password. In exchange, our app will send the user a JWT token which will be set as a cookie on the client side.
+ - Whenever a user tries to upload, get or view an image, our client sends a request with that cookie. Our server extracts the token, validates the token, and authenticates the user to perform the operations. 
+ - The corresponding request for metadata of the image are also updated in our database.
+ - If the Server cannot verify the token, it will declare the client as an unauthorized user.
+ - If user choose to logout, the Cookie is Deleted at client side.
+ - The expiry time of cookie is 1 hour.
+
+
 
 **Client:**
 
