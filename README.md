@@ -119,7 +119,7 @@ This project is designed and developed in order to integrate with Imgur API to u
 In this section, I would like to discuss about my approach for each bonus point. <br> 
 For some points have implemented the in the project and for some point, I will like to answer the by givng the design.
 
-#### Secure API via oAuth2
+### Secure API via oAuth2
 -  Architecture Design
 -  oAuth2 is a widely adopted authorization framework that enables third-party applications to access a user's resources or perform actions on their behalf, without requiring the user to directly share their credentials (like username and password).
 -  A user wants to use a third-party application (the client) to access their protected resources stored on a different service (the resource server, in our case Imgur).
@@ -132,7 +132,7 @@ For some points have implemented the in the project and for some point, I will l
 
 -   ![Logo](images/oauth2.png)
 
-#### Optimize API for 100K RPM
+### Optimize API for 100K RPM
 -  Architecture Design
 -  Code Implemenation for Cache
 -  We can acheive scalability by using <b>Load Balancer</b> Receives the 100K requests/minute and distributes them evenly to multiple application instances of our application server. Load Balance can also used for Rate Limiting factor.
@@ -148,7 +148,7 @@ For some points have implemented the in the project and for some point, I will l
 
 -   ![Logo](images/scale.png)
 
-#### Messaging Platform (Ex: Kafka)
+### Messaging Platform (Ex: Kafka)
 -  Architecture Design
 -  Code Implementation for Message Queue(Kafka)
 -  We have to implement a message queue, so whenever an upload happens on the client side. The event is published to message queue with username and imageName whenever 
@@ -165,12 +165,12 @@ For some points have implemented the in the project and for some point, I will l
 
 -   ![Logo](images/kafka.png)
 
-#### Preferably following the TDD approach for Junit test cases
+### Preferably following the TDD approach for Junit test cases
 -  Written the JUnit test Cases for both the Controller and Service Layer.
 -  Define test cases for the expected functionality before writing the actual code.
 -  Tests fail initially because the functionality does not exist yet
 -  Write just enough code to make the failing test pass.
 -  Clean up the code for quality and maintainability while ensuring all tests still pass.
 
-#### CI/CD Pipeline
+### CI/CD Pipeline
 -  Out of Scope
