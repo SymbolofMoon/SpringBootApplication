@@ -65,6 +65,10 @@ This project is designed and developed in order to integrate with Imgur API to u
     - GET /api/images/{imageId}:: View a specific image associated with the user (authenticated request)
     - DELETE /api/images/{imageId}: Deletes a specific image from Imgur (authenticated request)
 
+## Points to consider
+- Implemented authentication type of JWT Token storing in cookies(HttpOnly cookie), later verifying from the server(Implemenation below)
+- Implemented Logger functionality. The logs are being stored at logs.
+
 ## High Level System Design
 
 **This System is based on how a client app can handle crud activities for 3rd Party App. The flow behind the app is**
@@ -109,148 +113,64 @@ This project is designed and developed in order to integrate with Imgur API to u
 -  Image Service: Interfaces with Imgur API to manage image-related operations.
 -  Image Controller: Exposes REST endpoints for upload, view, and delete images.
 -  Image Repository: Stores the image metadata associated with users.
-**Client:**
-
-- ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
-- ![React Router](https://img.shields.io/badge/React_Router-CA4245?style=for-the-badge&logo=react-router&logoColor=white)
-- ![Redux](https://img.shields.io/badge/redux-%23593d88.svg?style=for-the-badge&logo=redux&logoColor=white)
-- ![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)
-- ![SASS](https://img.shields.io/badge/SASS-hotpink.svg?style=for-the-badge&logo=SASS&logoColor=white)
 
 
-**Server:** 
+## Bonus Points Discussion
+In this section, I would like to discuss about my approach for each bonus point. <br> 
+For some points have implemented the in the project and for some point, I will like to answer the by givng the design.
 
-- ![Socket.io](https://img.shields.io/badge/Socket.io-black?style=for-the-badge&logo=socket.io&badgeColor=010101)
-- ![Express.js](https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB)
-- ![Nodemon](https://img.shields.io/badge/NODEMON-%23323330.svg?style=for-the-badge&logo=nodemon&logoColor=%BBDEAD)
-- ![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
+#### Secure API via oAuth2
+-  Architecture Design
+-  oAuth2 is a widely adopted authorization framework that enables third-party applications to access a user's resources or perform actions on their behalf, without requiring the user to directly share their credentials (like username and password).
+-  A user wants to use a third-party application (the client) to access their protected resources stored on a different service (the resource server, in our case Imgur).
+-  The client redirects the user to the authorization server (e.g., Google’s OAuth server).
+-  The user logs in to the authorization server (if they are not already logged in) and is presented with a consent screen.
+-  If the user approves, the authorization server sends an authorization code to the client.
+-  The client sends this authorization code to the authorization server (along with its own client credentials) to request an access token. The server validates the code and, if valid, sends the client an access token (and optionally a refresh token).
+-  The client can now use this access token to make authorized API calls to the resource server and access the user’s data.
+-  Access tokens are typically short-lived for security reasons. If the access token expires, the client can use the refresh token (if provided) to obtain a new access token from the authorization server, without requiring the user to log in again.
 
-**Database:**
+-   ![Logo](images/oauth2.png)
 
-- ![MongoDB](https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=for-the-badge&logo=mongodb&logoColor=white)
+#### Optimize API for 100K RPM
+-  Architecture Design
+-  Code Implemenation for Cache
+-  We can acheive scalability by using <b>Load Balancer</b> Receives the 100K requests/minute and distributes them evenly to multiple application instances of our application server. Load Balance can also used for Rate Limiting factor.
+-  The Database Processes queries efficiently with read replicas and optimized indexing. We index through username.
+-  For caching, we have implemented using in-memory cache. In Springboot, we are using the <b>Caffeine</b> dependency.
+-  For the GetProfile API(/api/users/profile). We are using the Cache in front of Database. So whenever the user hits this API. Instead of going to database this query goes to cache for accessing the data. Cache stores the most frequent data. 
+-  If the cache does not have data, API hits the database for read query.
+-  Cache is a key value storage with key as username and value as userProfiles.
+-  Written all the logic behind cache in <b>Service</b> layer
+-  For Image update and delete queries, after writing to the database we are invalidating the cache and whenever the getProfile API will be called first it will take the query from database and after that save it to read cache.
+-  We are using @CacheEvict annotation in our code base which removes the cache entry for the specified key (#username) from the userProfiles cache. It ensures the cache is invalidated before the method completes. This is important because you're modifying the user's profile, and the cached version of the user profile would no longer be valid.
+-  However, cache eviction occurs only after the method successfully completes, not before or during the transaction. If the database operation fails, the cache eviction is rolled back because it's part of the same transaction(Using @Transactional annotation).
 
-**Other Software Packages:**
+-   ![Logo](images/scale.png)
 
-- ![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)
-- ![Visual Studio Code](https://img.shields.io/badge/Visual%20Studio%20Code-0078d7.svg?style=for-the-badge&logo=visual-studio-code&logoColor=white)
+#### Messaging Platform (Ex: Kafka)
+-  Architecture Design
+-  Code Implementation for Message Queue(Kafka)
+-  We have to implement a message queue, so whenever an upload happens on the client side. The event is published to message queue with username and imageName whenever 
+   upload of the image happens.
+-  The Flow of the implementation:
+    - Configure Kafka in Spring Boot: Add Kafka Dependency in pom.xml. Configure application.properties.
+    - Create the Kafka Topic at application.properties. Remember we have to keep the kafka at localhost:9092.
+    - Define a Messaging Service with the topic taken: Define a publish user image event.
+    - Integrate with Image Upload Logic: add the publish event to the Image Upload controller.
+    - Start Zookeeper, Kafka, and Kafka consumer at Localhost. Subscribe the Kafka consumer to ther topic user-image-events
+    - Upload the Image, as it will upload the image. On the Kafka consumer CLI, you will see the username and image name also printed.
+-  Key Takeaway: We are using @Async for the publish event function and @EnableAsync for the our Application, which make sure that this messaging event is in another thread 
+   and asynchronous. So, if it fails, the Image Upload function which is a main function should not throw exception.
 
+-   ![Logo](images/kafka.png)
 
+#### Preferably following the TDD approach for Junit test cases
+-  Written the JUnit test Cases for both the Controller and Service Layer.
+-  Define test cases for the expected functionality before writing the actual code.
+-  Tests fail initially because the functionality does not exist yet
+-  Write just enough code to make the failing test pass.
+-  Clean up the code for quality and maintainability while ensuring all tests still pass.
 
-
-## Dependencies
-
-This section includes all the Node Dependencies that are used in the project.
-
-To install the Dependencieson server side, use:
-```
-    cd api
-    npm install requirement_server.txt
-```
-
-To install the Dependencieson client side, use:
-```
-    cd api
-    npm install requirement_client.txt
-```
-
-So the Dependencies in Server side are:
-
-```
-    dependencies:
-        "@prisma/client": "^5.17.0",
-        "cookie-parser": "^1.4.6",
-        "express": "^4.19.2",
-        "nodemon": "^3.1.4",
-        "socket.io": "^4.7.5"
-
-
-
-        .....and many more.....
-
-```
-
-And the Dependencies in Client side are:
-
-```
-    dependencies:
-        "@reduxjs/toolkit": "^2.2.7",
-        "axios": "^1.7.2",
-        "dompurify": "^3.1.6",
-        "leaflet": "^1.9.4",
-        "react": "^18.2.0",
-        "react-dom": "^18.2.0",
-        "react-leaflet": "^4.2.1",
-        "react-redux": "^9.1.2",
-        "react-router-dom": "^6.22.2",
-        "react-toastify": "^10.0.5",
-        "sass": "^1.71.1",
-        "socket.io-client": "^4.7.5",
-        "timeago.js": "^4.0.2",
-        "zustand": "^4.5.4",
-        "react-share":
-
-
-    .....and many more.....
-
-```
-
-## Features
-- User Can Register as a Customer or Agent. Further, they can view their dashboard and can update their profile details.
-- Anyone Can view the Post(RealEstate Property). Users can search the Post on the basis of various parameters such as City, Numer Of Rooms etc.
-- Agents Can Add, Delete, and Update the Property.
-- Customer and Agent Can have a real time chat. In fact, they can view past messages from Other users.
-- Customer can subscribe to their favorite Agents to receive notification whenever they add a Property.
-- Customers and Agents can like, comment, and share the Post on Social Media.
-- Customer can submit Property and Agent Reviews.
-- Admin Can Track The activities of Agent such as CRUD Operations done by Agents.
-- Agent can register(create account) through verification from Admin.
-
-
-## Usage
-The RealEstate App streamlines property search and management for users, agents, and administrators. Property seekers can explore listings using advanced filters, save favorites, and track their search history for quick access. Notifications keep users updated on price drops or new listings matching their criteria, while a real-time chat system enables seamless communication with agents. Social features like likes, comments, and sharing enhance user engagement, while administrators can manage agent verifications and oversee platform activities through a dedicated dashboard. This comprehensive solution simplifies the property discovery process and improves user experience.
-
-## API Flow and Their Usage
-This section will describe the usage of each API that is used in this project.
-
-1. Authentication and Authorization APIs
-    - `POST /api/auth/register` -> Registration
-    - `POST /api/auth/login` -> Login
-    - `POST /api/auth/logout` -> LogOut
-
-2. Post Flow APIs
-    - `GET /api/post` -> Get All Posts
-    - `GET /api/post/{postId}` -> Get Single Post
-    - `POST /api/post` -> Add a Post
-    - `PUT /api/post/{postId}` -> Update a Post
-    - `DELETE /api/post/{postId}` -> Delete a Post
-    - `POST /api/post/like` -> Like a Post
-    - `POST /api/post/comment` -> Comment a Post
-    - `POST /api/post/rating` -> Rate a Post
-
-3. Chat Flow APIs
-    - `GET /api/chat` -> Get All Chats
-    - `GET /api/chat/chatId` -> Get a Particular Chat
-    - `POST /api/chat` -> Create a new Chat
-    - `DELETE /api/chat/{chatId}` -> Delete a Chat
-    - `PUT /api/chat/read/{chatId}` -> Read a Chat
- 
-4. Message Flow APIs
-    - `POST /api/message/{chatId}` -> Add a message to Particular Chat
-    - `PUT /api/message/{chatId}` -> Read a message of a Particular Chat
-
-5. User Flow APIs
-    - `GET /api/user/agents` -> Get All Agents
-    - `PUT /api/user/{userId}` -> Update a User
-    - `DELETE /api/user/{userId}` -> Delete a User
-    - `POST /api/user/save` -> Save the Post
-    - `GET /api/user/profilePosts` -> Get all the Saved Posts
-    - `GET /api/user/notification` -> Get Number of Notifications
-    - `POST /api/user/subscribe` -> User can Subscribe another user
-    - `POST /api/user/add/notification` -> Add a notification
-    - `POST /api/user/favorite/city` -> User can mark or unmark a city as favorite.
-    - `GET /api/user/fetch/notification` -> Get All Notifications related to User
-    - `GET /api/user/fetch/favorite/cities` -> Get Favorite Cities
-    - `PUT /api/user/read/notification/:notificationId` -> Read a Notification
-
-
-
+#### CI/CD Pipeline
+-  Out of Scope
