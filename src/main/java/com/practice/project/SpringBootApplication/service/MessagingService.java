@@ -4,6 +4,7 @@ package com.practice.project.SpringBootApplication.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.scheduling.annotation.Async;
@@ -14,7 +15,8 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
 @Service
 public class MessagingService {
 
-    private static final String TOPIC = "user-image-events"; // Kafka topic name
+    @Value("${spring.kafka.topic.user-image-events}")
+    private String TOPIC;// Kafka topic name
 
 
     private static final Logger logger = LoggerFactory.getLogger(ImgurService.class);
