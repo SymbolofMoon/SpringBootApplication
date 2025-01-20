@@ -6,6 +6,7 @@
 - [Bonus Points](#Bonus-Points)
 - [Database Schema](#database-schema)
 - [API Endpoints](#api-endpoints)
+- [Points to consider](#points-to-consider)
 - [High Level System Design](#high-level-system-design)
 - [Low Level System Design](#low-level-system-design)
 - [Bonus Point Discussion](#bonus-points-discussion)
