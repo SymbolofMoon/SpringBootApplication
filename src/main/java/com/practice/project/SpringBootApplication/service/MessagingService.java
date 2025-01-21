@@ -25,7 +25,7 @@ public class MessagingService {
     private KafkaTemplate<String, String> kafkaTemplate;
 
     @Async
-    public void publishEvent(String username, String imageName) {
+    public boolean publishEvent(String username, String imageName) {
         String message = String.format("User: %s, Image: %s", username, imageName);
 
         logger.info("Starting for publishing the event");
@@ -41,9 +41,11 @@ public class MessagingService {
                         }
                     }
             );
+            return true;
 
         }catch(Exception e){
             logger.warn("Error publishing event "+message+"Error: "+e.getMessage());
+            return false;
         }
 
 

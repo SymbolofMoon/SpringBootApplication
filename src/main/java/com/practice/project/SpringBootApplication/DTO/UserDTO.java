@@ -19,6 +19,10 @@ public class UserDTO {
         this.images = images;
     }
 
+    public UserDTO(){
+
+    }
+
     public UserDTO(String username, String email, List<Image> images) {
         this.username = username;
         this.email = email;

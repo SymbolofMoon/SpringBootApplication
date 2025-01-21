@@ -61,7 +61,10 @@ public class ImageController {
             Image image = imgurService.uploadImage(file.getBytes(), file.getOriginalFilename());
 
             // Publish event to Kafka
-            messagingService.publishEvent(user.getUsername(), image.getImgurName());
+            boolean kafka = messagingService.publishEvent(user.getUsername(), image.getImgurName());
+            if(kafka){
+                logger.info("Message is sent to publisher");
+            }
 
             // Save the user with the updated images list
             userService.addImagetoUser(image, user.getUsername());

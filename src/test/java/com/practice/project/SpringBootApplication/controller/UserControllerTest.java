@@ -1,10 +1,12 @@
 package com.practice.project.SpringBootApplication.controller;
 
+import com.practice.project.SpringBootApplication.DTO.UserDTO;
 import com.practice.project.SpringBootApplication.entity.Image;
 import com.practice.project.SpringBootApplication.entity.User;
 import com.practice.project.SpringBootApplication.repository.UserRepository;
 
 import com.practice.project.SpringBootApplication.service.ImgurService;
+import com.practice.project.SpringBootApplication.service.MessagingService;
 import com.practice.project.SpringBootApplication.service.UserService;
 import com.practice.project.SpringBootApplication.utility.JwtUtil;
 import org.hamcrest.Matchers;
@@ -35,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -47,6 +50,9 @@ public class UserControllerTest {
     @InjectMocks
     private UserController userController;
 
+    @InjectMocks
+    private ImageController imageController;
+
     @Mock
     private UserRepository userRepository;
 
@@ -57,6 +63,9 @@ public class UserControllerTest {
     private UserService userService;
 
     @Mock
+    private MessagingService messagingService;
+
+    @Mock
     private JwtUtil jwtUtil;
 
     private MockMvc mockMvc;
@@ -65,23 +74,7 @@ public class UserControllerTest {
 
     @BeforeEach
     public void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
-
-        // Mock User is creating
-//        mockUser = new User();
-//        mockUser.setUsername("testUser");
-//        mockUser.setPassword("testPassword");
-//        mockUser.setEmail("testEmail@example.com");
-//        mockUser.setImages(new ArrayList<>());
-//
-//        // Mock repository to return the mock user when findByUsername is called
-//        lenient().when(userRepository.findByUsername("testUser")).thenReturn(mockUser);
-//
-//        // Mock imgurService behavior for image upload
-//        Image mockImage = new Image();
-//        mockImage.setId(1L); // Set image ID
-//        lenient().when(imgurService.uploadImage(any(byte[].class), any(String.class))).thenReturn(mockImage);
-
+        mockMvc = MockMvcBuilders.standaloneSetup(userController, imageController).build();
 
     }
 
@@ -221,9 +214,21 @@ public class UserControllerTest {
         mockUser.setUsername("testUser");
         mockUser.setEmail("testUser@example.com");
         mockUser.setImages(Collections.emptyList());
+        UserDTO xyz = new UserDTO();
+
+        // Mock UserDTO directly
+        UserDTO mockUserDTO = new UserDTO();
+        mockUserDTO.setId(1L);
+        mockUserDTO.setUsername("testUser");
+        mockUserDTO.setEmail("testUser@example.com");
+        mockUserDTO.setImages(Collections.emptyList());
+
 
         // Mock Repository
-        when(userRepository.findByUsername("testUser")).thenReturn(mockUser);
+//        when(userRepository.findByUsername("testUser")).thenReturn(mockUser);
+        when(userService.getUserProfile("testUser")).thenReturn(mockUserDTO);
+
+//        when(userService.convertToUserDTO(mockUser)).thenReturn(mockUserDTO);
 
         // Perform Test
         mockMvc.perform(get("/api/users/profile")
@@ -245,7 +250,7 @@ public class UserControllerTest {
         when(mockPrincipal.getName()).thenReturn("unknownUser");
 
         // Mock Repository
-        when(userRepository.findByUsername("unknownUser")).thenReturn(null);
+        when(userService.getUserProfile("unknownUser")).thenReturn(null);
 
         // Perform Test
         mockMvc.perform(get("/api/users/profile")
@@ -263,16 +268,15 @@ public class UserControllerTest {
         when(mockPrincipal.getName()).thenReturn("testUser");
 
         // Mock Repository with Exception
-        when(userRepository.findByUsername("testUser")).thenThrow(new RuntimeException("Database error"));
+        when(userService.getUserProfile("testUser")).thenThrow(new RuntimeException("Database error"));
 
         // Perform Test
         mockMvc.perform(get("/api/users/profile")
                         .principal(mockPrincipal))
                 .andExpect(status().isInternalServerError());
     }
+    
 
-    //IMAGE UPLOAD API
-    //1. Test for Successful Image Upload API
     @Test
     public void testUploadImage_Success() throws Exception {
         // Mock Principal
@@ -291,11 +295,16 @@ public class UserControllerTest {
 
         // Mock Image Upload
         Image mockImage = new Image();
-        mockImage.setImgurId("12345");
-        mockImage.setImgurLink("https://i.imgur.com/12345.jpg");
-        mockImage.setImgurDeleteHash("deleteHash123");
+        mockImage.setImgurName("testImage");
+        mockImage.setImgurLink("https://i.imgur.com/test.jpg");
+        when(imgurService.uploadImage(Mockito.any(byte[].class), Mockito.anyString()))
+                .thenReturn(mockImage);
 
-        when(imgurService.uploadImage(Mockito.any(), Mockito.anyString())).thenReturn(mockImage);
+        // Mock Kafka messaging asynchronously (simulate async completion)
+        when(messagingService.publishEvent(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+
+        // Mock user update
+        doNothing().when(userService).addImagetoUser(mockImage, "testUser");
 
         // Prepare MultipartFile
         MockMultipartFile mockFile = new MockMultipartFile(
@@ -306,12 +315,19 @@ public class UserControllerTest {
         );
 
         // Perform Test
-        mockMvc.perform(multipart("/api/users/upload")
+        mockMvc.perform(multipart("/api/upload")
                         .file(mockFile)
                         .principal(mockPrincipal))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Image uploaded successfully"));
+
+        // Verify mock interactions
+        verify(userRepository).findByUsername("testUser");
+        verify(imgurService).uploadImage(Mockito.any(byte[].class), Mockito.eq("test.jpg"));
+        verify(messagingService).publishEvent("testUser", "testImage");
+        verify(userService).addImagetoUser(mockImage, "testUser");
     }
+
 
 
     //IMAGE UPLOAD API
@@ -323,7 +339,8 @@ public class UserControllerTest {
         when(mockPrincipal.getName()).thenReturn("unknownUser");
 
         // Mock Repository
-        when(userRepository.findByUsername("unknownUser")).thenReturn(null);
+        Mockito.lenient().when(userRepository.findByUsername("unknownUser")).thenReturn(null);
+        Mockito.lenient().when(messagingService.publishEvent(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
 
         // Prepare MultipartFile
         MockMultipartFile mockFile = new MockMultipartFile(
@@ -334,7 +351,7 @@ public class UserControllerTest {
         );
 
         // Perform Test
-        mockMvc.perform(multipart("/api/users/upload")
+        mockMvc.perform(multipart("/api/upload")
                         .file(mockFile)
                         .principal(mockPrincipal))
                 .andExpect(status().isUnauthorized())
@@ -358,9 +375,10 @@ public class UserControllerTest {
         mockUser.setImages(new ArrayList<>());
 
         lenient().when(userRepository.findByUsername("testUser")).thenReturn(mockUser);
+        lenient().when(messagingService.publishEvent(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
 
         // Perform Test without file
-        mockMvc.perform(multipart("/api/users/upload")
+        mockMvc.perform(multipart("/api/upload")
                         .principal(mockPrincipal))
                 .andExpect(status().isBadRequest());
     }
@@ -382,7 +400,7 @@ public class UserControllerTest {
         mockUser.setImages(new ArrayList<>());
 
         when(userRepository.findByUsername("testUser")).thenReturn(mockUser);
-
+        lenient().when(messagingService.publishEvent(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
         // Mock Service Exception
         when(imgurService.uploadImage(Mockito.any(), Mockito.anyString()))
                 .thenThrow(new RuntimeException("Imgur upload failed"));
@@ -396,7 +414,7 @@ public class UserControllerTest {
         );
 
         // Perform Test
-        mockMvc.perform(multipart("/api/users/upload")
+        mockMvc.perform(multipart("/api/upload")
                         .file(mockFile)
                         .principal(mockPrincipal))
                 .andExpect(status().isInternalServerError())
@@ -425,7 +443,7 @@ public class UserControllerTest {
                         .contentType(MediaType.IMAGE_JPEG)
                         .body(mockImageBytes));
 
-        mockMvc.perform(get("/api/users/images/validImgurId")
+        mockMvc.perform(get("/api/images/validImgurId")
                         .principal(() -> "testUser"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.IMAGE_JPEG))
@@ -438,7 +456,7 @@ public class UserControllerTest {
     public void testGetImage_UnauthorizedUser() throws Exception {
         when(userRepository.findByUsername(anyString())).thenReturn(null);
 
-        mockMvc.perform(get("/api/users/images/someImgurId")
+        mockMvc.perform(get("/api/images/someImgurId")
                         .principal(() -> "testUser"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().contentType(MediaType.TEXT_PLAIN))
@@ -455,7 +473,7 @@ public class UserControllerTest {
 
         when(userRepository.findByUsername("testUser")).thenReturn(mockUser);
 
-        mockMvc.perform(get("/api/users/images/someImgurId")
+        mockMvc.perform(get("/api/images/someImgurId")
                         .principal(() -> "testUser"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().string("Error fetching image: Image not found"));
@@ -477,7 +495,7 @@ public class UserControllerTest {
         when(imgurService.fetchImageFromUrl(anyString()))
                 .thenThrow(new RuntimeException("Imgur service failure"));
 
-        mockMvc.perform(get("/api/users/images/validImgurId")
+        mockMvc.perform(get("/api/images/validImgurId")
                         .principal(() -> "testUser"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().string("Error fetching image: Imgur service failure"));
@@ -498,7 +516,7 @@ public class UserControllerTest {
         when(userRepository.findByUsername("testUser")).thenReturn(mockUser);
         doNothing().when(imgurService).deleteImage("validDeleteHash");
 
-        mockMvc.perform(delete("/api/users/images/validImgurId")
+        mockMvc.perform(delete("/api/images/validImgurId")
                         .principal(() -> "testUser"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Image deleted successfully"));
@@ -514,7 +532,7 @@ public class UserControllerTest {
 
         when(userRepository.findByUsername("testUser")).thenReturn(mockUser);
 
-        mockMvc.perform(delete("/api/users/images/someImgurId")
+        mockMvc.perform(delete("/api/images/someImgurId")
                         .principal(() -> "testUser"))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string("Image not found"));
@@ -526,7 +544,7 @@ public class UserControllerTest {
     public void testDeleteImage_InvalidCredentials() throws Exception {
         when(userRepository.findByUsername("testUser")).thenReturn(null);
 
-        mockMvc.perform(delete("/api/users/images/someImgurId")
+        mockMvc.perform(delete("/api/images/someImgurId")
                         .principal(() -> "testUser"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().string("Invalid credentials"));
@@ -547,7 +565,7 @@ public class UserControllerTest {
         when(userRepository.findByUsername("testUser")).thenReturn(mockUser);
         doThrow(new RuntimeException("Imgur service error")).when(imgurService).deleteImage("validDeleteHash");
 
-        mockMvc.perform(delete("/api/users/images/validImgurId")
+        mockMvc.perform(delete("/api/images/validImgurId")
                         .principal(() -> "testUser"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().string("An unexpected error occurred: Imgur service error"));

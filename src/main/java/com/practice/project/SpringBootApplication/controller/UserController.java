@@ -97,15 +97,15 @@ public class UserController {
 
         try {
 
-            User user = userRepository.findByUsername(username);
-            if (user == null) {
+            UserDTO  userDTO = userService.getUserProfile(username);
+            if (userDTO == null) {
                 logger.warn("User with username '{}' not found.", username);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
             logger.debug("Profile information retrieved successfully for user: {}", username);
 
 //            UserDTO userDTO = new UserDTO(user.getId(), user.getUsername(), user.getEmail(), user.getImages());
-            UserDTO  userDTO = userService.getUserProfile(username);
+//            UserDTO  userDTO = userService.getUserProfile(username);
             return ResponseEntity.ok(userDTO);
         } catch (Exception e) {
             logger.error("Error fetching profile information for user", e.getMessage(), e);
