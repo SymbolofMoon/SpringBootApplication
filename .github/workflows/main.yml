@@ -91,3 +91,7 @@ jobs:
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/springboot-app:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/springboot-app:latest
+
+      - name: Deploy Container
+        run: |
+          docker run -d --name springboot-app -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/springboot-app:${{ github.sha }}
