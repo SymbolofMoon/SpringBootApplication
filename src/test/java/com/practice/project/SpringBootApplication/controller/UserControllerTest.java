@@ -275,7 +275,7 @@ public class UserControllerTest {
                         .principal(mockPrincipal))
                 .andExpect(status().isInternalServerError());
     }
-    
+
 
     @Test
     public void testUploadImage_Success() throws Exception {

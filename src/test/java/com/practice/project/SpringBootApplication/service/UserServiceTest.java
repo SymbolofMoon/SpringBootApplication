@@ -1,3 +1,5 @@
+package com.practice.project.SpringBootApplication.service;
+
 import com.practice.project.SpringBootApplication.entity.User;
 import com.practice.project.SpringBootApplication.repository.UserRepository;
 import com.practice.project.SpringBootApplication.service.UserService;
